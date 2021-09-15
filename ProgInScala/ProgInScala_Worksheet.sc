@@ -1,4 +1,5 @@
 
+
 // Variable Declaration
 val anInt1 : Int = 20
 val anInt2 = 30
@@ -443,23 +444,23 @@ list2 :+ 77
 
 // Functional collections
 //import scala.collection.immutable._
-val num = List(1, 2, 3)
-num map{no: Int => no * no}
-num map {num => num * num}
+val num1 = List(1, 2, 3)
+num1 map{no: Int => no * no}
+num1 map {num => num * num}
 
 
 
 // Function literal
-num map{x => x + 2}
-num map{(x:Int) => x + 2}
-num map{_ + 2}
-num map{_ => + 2}
+num1 map{x => x + 2}
+num1 map{(x:Int) => x + 2}
+num1 map{_ + 2}
+num1 map{_ => + 2}
 
 
 
 // Function values
 val addOne1 = (x: Int) => x + 1
-num map addOne1
+num1 map addOne1
 
 
 
@@ -467,23 +468,194 @@ num map addOne1
 val addOne2: Int => Int = x => x + 1
 addOne2(2)
 addOne2.apply(23)
-num map addOne2
+num1 map addOne2
 
 
-num map { no => List.fill(no)(no) }
+num1 map { no => List.fill(no)(no) }
 
 
-def max(list:List[Int]):Int={
-  def findmax(list1: List[Int], maxno: Int): Int ={
-    if(list1.isEmpty) maxno else {
-      val current = list1.head
 
-      if(current < maxno) findmax(list1.tail, maxno)
-      else findmax(list1.tail, current)
-    }
+// Filter
+val num2 = List(1,2,3,4,5,6)
+num2 filter { num:Int => num % 2 == 0 }
+num2 filter { num => num % 2 == 0 }
+num2 filter { _ % 2 == 0 }
+
+num2 filter { num:Int => num % 2 != 0 }
+num2 filter { num => num % 2 != 0 }
+num2 filter { _ % 2 != 0 }
+
+
+
+// map
+num2 map { _ * 2 }
+num2 map{no => no * no}
+
+
+
+// flatMap
+List.fill(3)(2)
+num2 flatMap { number => List.fill(number)(number) }
+
+
+
+// PartialFunction
+val isEven: PartialFunction[Int, String]= {
+  case x if (x % 2 == 0) => x + " is even"
+}
+isEven
+isEven(2)
+//isEven(5)
+
+
+
+
+// collect => (filter + map)
+val evens = num2 filter { n => n % 2 == 0 }
+evens map { n => n * n}
+evens collect {case n if (n % 2 == 0) => n * n}
+
+
+
+// Interoperability with Java Collections
+import scala.collection.JavaConverters._
+val vs = java.util.Arrays.asList("hi", "bye")
+vs.asScala
+
+num2.asJava
+
+val set1 = Set(1,2,3)
+set1.asJava
+
+val map = Map("a" -> "Apple", "b" -> "Banana")
+map.asJava
+
+
+
+// For expressions
+for (i <- List(1, 2, 3, 4)) yield i + 1
+
+for {
+  i <- 1 to 3
+  j <- 1 to i
+} yield i * j
+
+for {
+  i <- 1 to 3 if i % 2 == 1
+  j <- 1 to i
+} yield i * j
+
+3 % 2 == 1
+
+
+
+// Definitions
+for{
+  elem <- num2
+  square = elem * elem if square % 2 == 0
+} yield {square}
+
+
+
+// Tail Recursion
+def fact(no: Int): Int ={
+  def findFact(factno: Int, factval: Int): Int =
+    if(factno == 1) factval else findFact(factno - 1, factno * factval)
+
+  findFact(no, 1)
+}
+fact(5)
+
+
+
+// Partially applied functions
+def sum(a: Int, b: Int, c: Int): Int = a + b + c
+sum(2, _:Int, 6)
+
+
+
+/* Implicits
+Scala provides three type of implicits:
+1) Implicit Parameters
+2) Implicit conversions(methods)
+3) Implicit classes
+ */
+// Implicit Parameters
+implicit val str = "Hitess Sardar"
+def show(implicit str: String) = println(str)
+show
+show("This is not implicit parameter")
+
+
+
+// Implicit conversions
+implicit def int2String(n: Int): String = n.toString
+val str:String = 22
+
+
+
+// Exercise
+class Rational12(n: Int, d: Int=1) {
+  val numer: Int = n
+  val denom: Int = d
+
+  def + (rational: Rational12): Rational12 ={
+    new Rational12( numer * rational.denom + rational.numer * denom, denom * rational.denom)
   }
 
-  findmax(list, list.head)
+  def + (implicit no: Int): Rational12 ={
+    new Rational12( denom * no + numer, denom)
+  }
+  override def toString()= numer + "/" + denom
 }
 
-max(List(1, 6 , 99, 8))
+val r1 = new Rational12(3, 9)
+val r2 = new Rational12(8, 9)
+r1 + r2
+r1 + 2
+
+
+
+// Implicit Class
+implicit class RichInt(n:Int){
+  def square = n * n
+}
+2.square
+10.square
+12.square
+
+
+
+//Class inheritance
+
+
+
+
+
+
+
+
+
+
+implicit class Rational13(num: Int) {
+
+  def + (numer: Int, denom: Int):String ={
+    val number = num * denom + numer
+    number + "/" + denom
+  }
+
+  def add (numer: Int, denom: Int):String ={
+    val number = num * denom + numer
+    number + "/" + denom
+  }
+
+  implicit def + (numer: String, denom: String):String ={
+    val number = num.toInt * denom.toInt + numer
+    number + "/" + denom
+  }
+
+}
+
+//2.+(3,2)
+2.add(3, 2)
+//2.+("3","2")
